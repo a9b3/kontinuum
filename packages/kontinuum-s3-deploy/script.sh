@@ -69,7 +69,9 @@ make_bucket() {
       }
     ]
   }' | sed -e "s/example\.com/$name/g")" &&
-  aws s3 website s3://$name/ --index-document index.html || { exit 1; }
+
+  # let single page apps handle routes
+  aws s3 website s3://$name/ --index-document index.html --error-document index.html || { exit 1; }
 }
 
 make_index_bucket() {
