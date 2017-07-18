@@ -1,22 +1,14 @@
+# kontinuum-route53
+
 Create resource record set in route53.
 
 ## Requirements
 
-- requires awscli `pip install awscli`
-
-Set these env vars in the environment that is being used to run this script.
-
-```
-AWS_DEFAULT_REGION
-AWS_ACCESS_KEY_ID
-AWS_SECRET_ACCESS_KEY
-```
-
-- requires `jq`
+[Setup Instructions](https://github.com/esayemm/kontinuum)
 
 *Note: Remember to set nameserver values for the domain*
 
-### Usage
+## Usage
 
 ```sh
 ./script.sh --name <name> --root <root>
@@ -27,5 +19,6 @@ AWS_SECRET_ACCESS_KEY
 `--root`: root domain
 
 
-TODO
-only works for static sites via s3 buckets
+
+
+*[TODO]: only works for static sites via s3 buckets*

@@ -1,18 +1,13 @@
+# kontinuum-s3-deploy
+
 Sync a source with a lazily created s3 bucket.
 
 ## Requirements
 
-- requires awscli `pip install awscli`
+[Setup Instructions](https://github.com/esayemm/kontinuum)
 
-Set these env vars in the environment that is being used to run this script.
 
-```
-AWS_DEFAULT_REGION
-AWS_ACCESS_KEY_ID
-AWS_SECRET_ACCESS_KEY
-```
-
-### Usage
+## Usage
 
 ```sh
 ./script.sh --name foo.com --is-index <source>

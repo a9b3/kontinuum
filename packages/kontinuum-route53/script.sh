@@ -48,6 +48,9 @@ if [[ -z $name ]] || [[ -z $root ]]; then
   exit 1
 fi
 
+# Create hosted zone if it doesn't exists otherwise don't do anything.
+#
+# @param {string} root
 lazy_create_root_hosted_zones() {
   root=$1
 
@@ -58,6 +61,10 @@ lazy_create_root_hosted_zones() {
   aws route53 create-hosted-zone --name $root. --caller-reference $root
 }
 
+# Create a record set.
+#
+# @param {string} name
+# @param {string} hosted_zone_id
 upsert_resource_record_sets() {
   name=$1
   hosted_zone_id=$2
