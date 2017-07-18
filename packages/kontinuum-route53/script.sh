@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+j
 usage() {
 cat << EOF
 required
