@@ -8,8 +8,10 @@ OPTIONS:
   -h              help
 
 REQUIRED OPTIONS:
-  --name          subdomain name eg. foo.example.com
-  --root          root domain eg. example.com
+  --name                    subdomain name eg. foo.example.com
+  --root                    root domain eg. example.com
+  --target-hosted-zone-id   visit http://docs.aws.amazon.com/general/latest/gr/rande.html#s3_region
+  --target-dns-name         visit http://docs.aws.amazon.com/general/latest/gr/rande.html#s3_region
 EOF
 }
 
@@ -34,6 +36,16 @@ while test $# -gt 0; do
       name=$1
       shift
       ;;
+    --target-hosted-zone-id*)
+      shift
+      target_hosted_zone_id=$1
+      shift
+      ;;
+    --target-dns-name*)
+      shift
+      target_dns_name=$1
+      shift
+      ;;
     *)
       break
       ;;
@@ -50,7 +62,7 @@ fi
 
 # Create hosted zone if it doesn't exists otherwise don't do anything.
 #
-# @param {string} root
+# @param {!string} root - root uri eg. "foo.com." note the trailing period.
 lazy_create_root_hosted_zones() {
   root=$1
 
@@ -63,12 +75,13 @@ lazy_create_root_hosted_zones() {
 
 # Create a record set.
 #
-# @param {string} name
-# @param {string} hosted_zone_id
+# @param {!string} name
+# @param {!string} hosted_zone_id - from list-hosted-zones hosted zones id
+# @param {!string} target_hosted_zone_id - http://docs.aws.amazon.com/general/latest/gr/rande.html#s3_region
+# @param {!string} target_dns_name - http://docs.aws.amazon.com/general/latest/gr/rande.html#s3_region
 upsert_resource_record_sets() {
   name=$1
   hosted_zone_id=$2
-
   # IMPORTANT: HostedZoneId for the alias target has to be the same as the s3
   # bucket, refer to link below
   #
@@ -76,8 +89,8 @@ upsert_resource_record_sets() {
   #
   # also, it cannot be retreived via cli SMH
   # https://forums.aws.amazon.com/thread.jspa?threadID=116724
-  alias_target_dns_name=s3-website-us-west-2.amazonaws.com.
-  alias_target_hosted_zone_id=Z3BJ6K6RIION7M
+  target_hosted_zone_id=${3:-"Z3BJ6K6RIION7M"} # this value is for us-west-2
+  target_dns_name=${4:-"s3-website-us-west-2.amazonaws.com."}
 
   aws route53 change-resource-record-sets --hosted-zone-id $hosted_zone_id --change-batch "$(echo '{
     "Changes": [
@@ -85,8 +98,8 @@ upsert_resource_record_sets() {
         "Action": "UPSERT",
         "ResourceRecordSet": {
           "AliasTarget": {
-            "HostedZoneId": "<hosted_zone_id>",
-            "DNSName": "<dns_name>",
+            "HostedZoneId": "<target_hosted_zone_id>",
+            "DNSName": "<target_dns_name>",
             "EvaluateTargetHealth": false
           },
           "Name": "<name>",
@@ -97,8 +110,8 @@ upsert_resource_record_sets() {
     "Comment": "Creating an alias for <name>"
   }' | sed \
     -e "s/<name>/$name./g" \
-    -e "s/<dns_name>/$alias_target_dns_name/g" \
-    -e "s/<hosted_zone_id>/$alias_target_hosted_zone_id/g")"
+    -e "s/<target_dns_name>/$target_dns_name/g" \
+    -e "s/<target_hosted_zone_id>/$target_hosted_zone_id/g")"
 }
 
 lazy_create_root_hosted_zones $root
@@ -106,4 +119,4 @@ lazy_create_root_hosted_zones $root
 hosted_zone_id="$(aws route53 list-hosted-zones \
   | jq -r '.HostedZones[] | select(.Name=="'$root'.") | .Id')"
 
-upsert_resource_record_sets $name $hosted_zone_id
+upsert_resource_record_sets $name $hosted_zone_id $target_hosted_zone_id $target_dns_name

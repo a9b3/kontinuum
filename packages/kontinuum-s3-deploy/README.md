@@ -13,11 +13,13 @@ Sync a source with a lazily created s3 bucket.
 ./script.sh --name foo.com --is-index <source>
 ```
 
-`--name `: s3 bucket name to create
 
-`--is-index`: is meant to be an the root domain, therefore `www.${name}` bucket will also be created
+|Flag|Default|Required|Description|
+|---|---|---|---|
+|`--name`||true|s3 bucket name to create|
+|`--is-index`|false|false|`www.${name}` bucket will also be created|
 
-ex.
+*eg.*
 
 ```sh
 ./node_modules/kontinuum-s3-deploy/script.sh --name example.com --is-index ./build
