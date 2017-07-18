@@ -1,6 +1,6 @@
 # kontinuum-route53
 
-Create hosted zones and set resource record set in route53.
+Create hosted zones and set resource record set in route53. 
 
 ## Requirements
 
@@ -22,6 +22,8 @@ Create hosted zones and set resource record set in route53.
 ```sh
 ./script.sh --name foo.example.com --root example.com
 ```
+
+If name is the same as root then an alias for www.$root will also be created.
 
 
 *[TODO]: only works for static sites via s3 buckets*

@@ -40,7 +40,7 @@ while test $# -gt 0; do
       shift
       target_hosted_zone_id=$1
       shift
-      ;;
+o     ;;
     --target-dns-name*)
       shift
       target_dns_name=$1
@@ -120,3 +120,8 @@ hosted_zone_id="$(aws route53 list-hosted-zones \
   | jq -r '.HostedZones[] | select(.Name=="'$root'.") | .Id')"
 
 upsert_resource_record_sets $name $hosted_zone_id $target_hosted_zone_id $target_dns_name
+
+# if root is name that means this is an index route so we need to also create www.
+if [ $name == $root ]; then
+  upsert_resource_record_sets www.$root $hosted_zone_id $target_hosted_zone_id $target_dns_name
+fi

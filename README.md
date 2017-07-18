@@ -42,3 +42,18 @@ AWS_SECRET_ACCESS_KEY
 
 
 4. Run `aws configure`
+
+
+## Usage
+
+### Deploy static site to s3 and setup route53 routing.
+
+```json
+{
+	"scripts": {
+		"deploy:s3": "",
+		"deploy:route53": "",
+		"deploy": ""
+	}
+}
+```
