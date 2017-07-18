@@ -33,10 +33,10 @@ AWS_SECRET_ACCESS_KEY
 *TL;DR*
 
 1. [Create New Group](https://console.aws.amazon.com/iam/home?region=us-west-2#/groups), attach the following policies.
-	
+
 	- AmazonS3FullAccess
 	- AmazonRoute53FullAccess
-	
+
 2. [Create IAM User](https://console.aws.amazon.com/iam/home?region=us-west-2#/users), select `programmatic access` for access type. Add user to the group you just created.
 3. 	You can download the csv and save it in a safe location. This file contains your `AWS_ACCESS_KEY_ID` and `AWS_SECRET_ACCESS_KEY`.
 
@@ -48,12 +48,14 @@ AWS_SECRET_ACCESS_KEY
 
 ### Deploy static site to s3 and setup route53 routing.
 
+`yarn add kontinuum-route53 kontinuum-s3-deploy --dev`
+
 ```json
 {
 	"scripts": {
-		"deploy:s3": "",
-		"deploy:route53": "",
-		"deploy": ""
+		"deploy:s3": "./node_modules/kontinuum-s3-deploy/script.sh --name foo.com --is-index ./build",
+		"deploy:route53": "./node_modules/kontinuum-route53/script.sh --name foo.com --root foo.com",
+		"deploy": "npm run deploy:s3 && npm run deploy:route53"
 	}
 }
 ```
