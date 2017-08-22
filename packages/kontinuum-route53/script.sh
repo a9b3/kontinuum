@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-j
+
 usage() {
 cat << EOF
 required
@@ -41,7 +41,7 @@ while test $# -gt 0; do
       shift
       target_hosted_zone_id=$1
       shift
-o     ;;
+      ;;
     --target-dns-name*)
       shift
       target_dns_name=$1
