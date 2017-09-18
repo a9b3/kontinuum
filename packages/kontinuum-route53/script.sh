@@ -11,6 +11,8 @@ OPTIONS:
 REQUIRED OPTIONS:
   --name                    subdomain name eg. foo.example.com
   --root                    root domain eg. example.com
+
+OPTIONAL:
   --target-hosted-zone-id   visit http://docs.aws.amazon.com/general/latest/gr/rande.html#s3_region
   --target-dns-name         visit http://docs.aws.amazon.com/general/latest/gr/rande.html#s3_region
 EOF

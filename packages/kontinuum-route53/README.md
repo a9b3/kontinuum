@@ -2,11 +2,11 @@
 
 Create hosted zones and set resource record set in route53. 
 
-## Requirements
+### Requirements
 
 [Setup Instructions](https://github.com/esayemm/kontinuum)
 
-## Usage
+## Create s3 proxy for static sites
 
 [Available values for target hosted zone id and target dns name.](http://docs.aws.amazon.com/general/latest/gr/rande.html#s3_region)
 
@@ -27,3 +27,14 @@ If name is the same as root then an alias for www.$root will also be created.
 
 
 *[TODO]: only works for static sites via s3 buckets*
+
+## Create proxy for servers
+
+```sh
+./upsert_resource_a_record.sh --name auth.example.com --root example.com --ip 10.0.0.1
+```
+
+|Flag|Default|Required|Description|
+|---|---|---|---|
+|`--name`||true|Name of backend service eg. `auth.example.com`|
+|`--root`||true|Root domain eg. `example.com`|
