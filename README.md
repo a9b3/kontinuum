@@ -2,31 +2,33 @@
 
 A set of services and tools to help with deployment.
 
-- [kontinuum-route53](https://github.com/esayemm/kontinuum/tree/master/packages/kontinuum-route53)
-- [kontinuum-s3-deploy](https://github.com/esayemm/kontinuum/tree/master/packages/kontinuum-s3-deploy)
+## Prereq
 
-
+Buy domain name on aws route53, which will automatically create the hosted zone for you.
 
 ## Usage
 
-### Deploy static site to s3 and setup route53 routing.
+#### Deploy a static site to aws
 
-You can first upload static files to a s3 bucket and then point route53 to the bucket.
+1. Uses ACM to create certs.
+2. Creates buckets in s3.
+3. Creates a cloudfront distribution.
+4. Creates A records in route53.
 
-`yarn add kontinuum-route53 kontinuum-s3-deploy --dev`
+`yarn add kontinuum-push --dev`
 
 ```json
 {
 	"scripts": {
-		"deploy:s3": "./node_modules/kontinuum-s3-deploy/script.sh --name foo.com --is-index ./build",
-		"deploy:route53": "./node_modules/kontinuum-route53/script.sh --name foo.com --root foo.com",
-		"deploy": "npm run deploy:s3 && npm run deploy:route53"
+		"deploy": "./node_modules/kontinuum-push/push.sh --domain foo.example.com --root example.com --source ./build"
 	}
 }
 ```
 
 
 ## Setup Environment
+
+**Important:*s Do this in the environment before running the script.
 
 These scripts are just wrappers around aws-cli so first you need the cli. You will need python and pip because awscli is a python package. Also requires jq.
 
