@@ -344,7 +344,7 @@ cloudfront_lazy_create_distribution() {
 
   if [ "$includeWWW" = true ]; then
     if [ -z "$(cloudfront_get_domain www.$root)" ]; then
-      cloudfront_create_distribution www.$domain www.$domain $(acm_get_certificate_arn *.$root)
+      cloudfront_create_distribution $domain www.$domain $(acm_get_certificate_arn *.$root)
     fi
   fi
 }
