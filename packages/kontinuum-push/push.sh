@@ -118,20 +118,16 @@ acm_get_certificate_arn() {
 acm_lazy_create_cert() {
   root=$1
 
-  domain_exists=$(aws acm --region us-east-1 list-certificates | jq '.CertificateSummaryList[] | select(.DomainName == "'$root'")')
-  if [ ! -n "$domain_exists" ]; then
-    echo $domain requires email validation
-    exit 0
-  fi
-
-  domain_exists=$(aws acm --region us-east-1 list-certificates | jq '.CertificateSummaryList[] | select(.DomainName == "'*.$root'")')
-  if [ ! -n "$domain_exists" ]; then
-    echo *.$domain requires email validation
-    exit 0
-  fi
+  should_exit=$(aws acm --region us-east-1 list-certificates | jq '.CertificateSummaryList[] | select(.DomainName == "'$root'")')
+  should_exit_2=$(aws acm --region us-east-1 list-certificates | jq '.CertificateSummaryList[] | select(.DomainName == "'*.$root'")')
 
   acm_request_certificate_if_not_exist "*.$root"
   acm_request_certificate_if_not_exist $root
+
+  if [ ! -n "$should_exit" ] || [ ! -n "$should_exit_2" ]; then
+    echo $root *.$root requires email validation
+    exit 0
+  fi
 }
 
 s3_make_bucket() {
@@ -343,7 +339,7 @@ cloudfront_lazy_create_distribution() {
   includeWWW=$3
 
   if [ -z "$(cloudfront_get_domain $root)" ]; then
-    cloudfront_create_distribution $domain $domain $(acm_get_certificate_arn *.$root)
+    cloudfront_create_distribution $domain $domain $(acm_get_certificate_arn $root)
   fi
 
   if [ "$includeWWW" = true ]; then
@@ -421,9 +417,11 @@ route53_lazy_create_a_record() {
     | jq -r '.HostedZones[] | select(.Name=="'$root'.") | .Id')"
 
   cloudfront_target_dns_name=$(cloudfront_get_domain $domain)
+  echo creating a record for $domain
   route53_upsert_a_record_alias $domain $route53_hosted_zone_id $CLOUD_FRONT_HOSTED_ZONE_ID $cloudfront_target_dns_name
 
   if [ "$includeWWW" = true ]; then
+    echo creating a record for www.$root
     cloudfront_target_dns_name=$(cloudfront_get_domain www.$root)
     route53_upsert_a_record_alias www.$root $route53_hosted_zone_id $CLOUD_FRONT_HOSTED_ZONE_ID $cloudfront_target_dns_name
   fi
