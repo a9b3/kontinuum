@@ -1,21 +1,29 @@
-# Kontinuum
+# kontinuum
 
 A set of services and tools to help with deployment.
-
-## Prereq
-
-Buy domain name on aws route53, which will automatically create the hosted zone for you.
 
 ## Usage
 
 #### Deploy a static site to aws
 
-1. Uses ACM to create certs.
+**Prereq** Buy domain name on aws route53, which will automatically create a hosted zone for you.
+
+*Note: First time running this script you will need to manually validate the
+certificate via your email so the certificates become valid in aws. Then run the
+script again*
+
+All steps will be performed lazily.
+
+1. Creates certs using ACM.
 2. Creates buckets in s3.
 3. Creates a cloudfront distribution.
 4. Creates A records in route53.
 
+Add the script as a dev dep.
+
 `yarn add kontinuum-push --dev`
+
+Now add a npm script to call the push script.
 
 ```json
 {
@@ -25,10 +33,19 @@ Buy domain name on aws route53, which will automatically create the hosted zone 
 }
 ```
 
+If your static site is for the root of the domain include the flag `---include-www`.
+
+```json
+{
+	"scripts": {
+		"deploy": "./node_modules/kontinuum-push/push.sh --domain foo.example.com --root example.com --source ./build --include-www"
+	}
+}
+```
 
 ## Setup Environment
 
-**Important:*s Do this in the environment before running the script.
+**Important:** Do this in the environment before running the script.
 
 These scripts are just wrappers around aws-cli so first you need the cli. You will need python and pip because awscli is a python package. Also requires jq.
 
@@ -37,7 +54,7 @@ brew install python jq
 pip install awscli
 ```
 
-### Setup Env Vars (Also Needed For CI)
+#### Setup Env Vars (Also Needed For CI)
 
 Each script will reference the following env vars.
 
@@ -47,9 +64,9 @@ AWS_ACCESS_KEY_ID
 AWS_SECRET_ACCESS_KEY
 ```
 
-#### How to get these values?
+List of regions for the env var `AWS_DEFAULT_REGION`: [Region Default List](http://docs.aws.amazon.com/general/latest/gr/rande.html) eg. `us-west-2`
 
-`AWS_DEFAULT_REGION`: [Region Default List](http://docs.aws.amazon.com/general/latest/gr/rande.html) eg. `us-west-2`
+#### Set up IAM User in aws
 
 [AWS Best Practices](http://docs.aws.amazon.com/IAM/latest/UserGuide/best-practices.html?icmpid=docs_iam_console)
 
