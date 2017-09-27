@@ -312,7 +312,6 @@ cloudfront_create_distribution() {
 
 s3_lazy_create_bucket() {
   domain=$1
-  includeWWW=$2
 
   domain_exists=$(aws s3 ls | grep " $domain")
   if [ ! -n "$domain_exists" ]; then
@@ -320,16 +319,6 @@ s3_lazy_create_bucket() {
     s3_make_bucket $domain || { exit 1; }
   else
     echo s3 bucket for $domain already exists
-  fi
-
-  if [ "$includeWWW" = true ]; then
-    domain_exists=$(aws s3 ls | grep "www.$domain")
-    if [ ! -n "$domain_exists" ]; then
-      echo creating s3 bucket for www.$domain
-      s3_make_redirect_bucket www.$domain $domain || { exit 1; }
-    else
-      echo s3 bucket for www.$domain already exists
-    fi
   fi
 }
 
@@ -438,7 +427,7 @@ main() {
   includeWWW=$4
 
   acm_lazy_create_cert $root
-  s3_lazy_create_bucket $domain $includeWWW
+  s3_lazy_create_bucket $domain
   aws s3 sync $source s3://$domain --delete
   cloudfront_lazy_create_distribution $domain $root $includeWWW
   route53_lazy_create_a_record $domain $root $includeWWW
