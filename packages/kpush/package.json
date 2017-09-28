@@ -1,0 +1,42 @@
+{
+  "name": "kontinuum-push",
+  "version": "1.0.0",
+  "license": "MIT",
+  "devDependencies": {
+    "babel-eslint": "^8.0.1",
+    "babel-polyfill": "^6.26.0",
+    "babel-register": "^6.26.0",
+    "eslint": "^4.7.2",
+    "eslint-config-esayemm": "^2.0.9",
+    "eslint-plugin-react": "^7.4.0",
+    "expect": "^21.2.1",
+    "jbs-node": "^0.0.3",
+    "mocha": "^3.5.3"
+  },
+  "scripts": {
+    "start": "NODE_PATH=./src nodemon ./index.js",
+    "test": "APP_ENV=test ./node_modules/mocha/bin/mocha --compilers js:babel-register --require babel-polyfill $(find . -name '*.spec.js' ! -ipath '*node_modules*' ! -ipath '*dist*')",
+    "test:watch": "APP_ENV=test ./node_modules/mocha/bin/mocha --compilers js:babel-register --require babel-polyfill --watch $(find . -name '*.spec.js' ! -ipath '*node_modules*' ! -ipath '*dist*')",
+    "lint": "./node_modules/eslint/bin/eslint.js .",
+    "build": "./node_modules/jbs-node/bin.js build --input src --output build",
+    "prepublish": "npm run build",
+    "preversion": "npm run lint && npm run test",
+    "version": "npm publish",
+    "postversion": "git add . && git push && git push --tags"
+  },
+  "main": "./build/index.js",
+  "babel": {
+    "presets": [
+      "./node_modules/jbs-node/configs/babel-preset-jbs-node.js"
+    ]
+  },
+  "files": [
+    "build/"
+  ],
+  "dependencies": {
+    "aws-sdk": "2.3.0",
+    "chalk": "^2.1.0",
+    "commander-shepard": "^3.0.2",
+    "inquirer": "^3.3.0"
+  }
+}
