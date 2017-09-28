@@ -43,6 +43,10 @@ If your static site is for the root of the domain include the flag `---include-w
 }
 ```
 
+**IMPORTANT** First time running, this will take like an hour to propagate, you
+might see access denied aws errors in the meantime if you try hitting your
+domain.
+
 ## Setup Environment
 
 **Important:** Do this in the environment before running the script.

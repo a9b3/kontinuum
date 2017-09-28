@@ -173,6 +173,19 @@ cloudfront_get_domain() {
   echo $cloudfront_domain
 }
 
+cloudfront_get_distribution_id() {
+  domain=$1
+  cloudfront_id=$(aws cloudfront list-distributions | jq -r '.DistributionList.Items[] | select(.Aliases.Items[0]=="'$domain'") | .Id')
+  echo $cloudfront_id
+}
+
+cloudfront_invalidate() {
+  domain=$1
+
+  cloudfront_id=$(cloudfront_get_distribution_id $domain)
+  aws cloudfront create-invalidation --distribution-id $cloudfront_id --paths '/*'
+}
+
 # Create a cloudfront distribution with the following configs.
 # - default root /index.html
 # - error root /index.html, allows single page apps to work
@@ -329,11 +342,15 @@ cloudfront_lazy_create_distribution() {
 
   if [ -z "$(cloudfront_get_domain $root)" ]; then
     cloudfront_create_distribution $domain $domain $(acm_get_certificate_arn $root)
+  else
+    cloudfront_invalidate $domain
   fi
 
   if [ "$includeWWW" = true ]; then
     if [ -z "$(cloudfront_get_domain www.$root)" ]; then
       cloudfront_create_distribution $domain www.$domain $(acm_get_certificate_arn *.$root)
+    else
+      cloudfront_invalidate www.$domain
     fi
   fi
 }
