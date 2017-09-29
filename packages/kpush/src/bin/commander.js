@@ -1,10 +1,10 @@
 import {
   Commander,
   Command,
-}               from 'commander-shepard'
+}                from 'commander-shepard'
 
-import push     from './push'
-import delcerts from './delcerts'
+import push      from 'bin/commands/push'
+import delcerts  from 'bin/commands/delcerts'
 
 const commander = new Commander({
   key            : 'kontinuum-push',

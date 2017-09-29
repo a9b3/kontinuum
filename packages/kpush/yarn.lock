@@ -69,6 +69,10 @@ anymatch@^1.3.0:
     micromatch "^2.1.5"
     normalize-path "^2.0.0"
 
+app-module-path@^2.2.0:
+  version "2.2.0"
+  resolved "https://registry.yarnpkg.com/app-module-path/-/app-module-path-2.2.0.tgz#641aa55dfb7d6a6f0a8141c4b9c0aa50b6c24dd5"
+
 aproba@^1.0.3:
   version "1.2.0"
   resolved "https://registry.yarnpkg.com/aproba/-/aproba-1.2.0.tgz#6802e6264efd18c790a1b0d517f0f2627bf2c94a"
@@ -1178,8 +1182,8 @@ combined-stream@^1.0.5, combined-stream@~1.0.5:
     delayed-stream "~1.0.0"
 
 commander-shepard@^3.0.2:
-  version "3.0.2"
-  resolved "https://registry.yarnpkg.com/commander-shepard/-/commander-shepard-3.0.2.tgz#43ce05e65c41a0f177cd4dd97cc921df9e4732ad"
+  version "3.0.3"
+  resolved "https://registry.yarnpkg.com/commander-shepard/-/commander-shepard-3.0.3.tgz#179aadcce48035958a5389a9a500f29ca9046570"
   dependencies:
     chalk "^1.1.3"
     yargs "^6.3.0"

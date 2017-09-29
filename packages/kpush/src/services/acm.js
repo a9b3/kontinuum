@@ -1,4 +1,6 @@
-import AWS from 'aws-sdk'
+import AWS           from 'aws-sdk'
+
+import configuration from 'services/configuration'
 
 /**
  * lazilyCreateCert will request a certificate if one does not already exist.
@@ -23,13 +25,18 @@ export async function createCertForDomain({
   const serviceObject = getServiceObject()
 
   const params = {
-    DomainName             : domain,
-    DomainValidationOptions: [
-      {
-        DomainName      : 'STRING_VALUE',
-        ValidationDomain: 'STRING_VALUE',
-      },
+    DomainName: domain,
+    // TODO add naked url here, also search based on this so you dont need two
+    // cloudfront distributions
+    SubjectAlternativeNames: [
+      '',
     ],
+    // DomainValidationOptions: [
+    //   {
+    //     DomainName      : 'STRING_VALUE',
+    //     ValidationDomain: 'STRING_VALUE',
+    //   },
+    // ],
   }
   return await serviceObject.requestCertificate(params).promise()
 }
@@ -46,6 +53,18 @@ export async function getCertForDomain({
   return (await getAllCerts()).filter(c => c.DomainName === domain)[0]
 }
 
+export async function describeCertificate({
+  arn,
+}) {
+  const params = {
+    CertificateArn: arn,
+  }
+  const {
+    Certificate,
+  } = await getServiceObject().describeCertificate(params).promise()
+  return Certificate
+}
+
 export async function getAllCerts() {
   const {
     CertificateSummaryList,
@@ -59,7 +78,7 @@ export async function deleteCert({
   const params = {
     CertificateArn: arn,
   }
-  return await getServiceObject().deleteCertificate(params)
+  return await getServiceObject().deleteCertificate(params).promise()
 }
 
 
@@ -74,6 +93,7 @@ const getServiceObject = (() => {
     }
 
     acmServiceObject = new AWS.ACM({
+      ...configuration,
       // Only us-east-1 is supported for acm.
       region: 'us-east-1',
     })

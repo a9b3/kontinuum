@@ -1,6 +1,6 @@
 import inquirer from 'inquirer'
 
-import * as acm  from '../../services/acm'
+import * as acm  from 'services/acm'
 
 export default async function selectCertificates() {
   const certs = await acm.getAllCerts()

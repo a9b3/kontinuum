@@ -34,6 +34,7 @@
     "build/"
   ],
   "dependencies": {
+    "app-module-path": "^2.2.0",
     "aws-sdk": "2.3.0",
     "chalk": "^2.1.0",
     "commander-shepard": "^3.0.2",
