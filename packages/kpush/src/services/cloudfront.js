@@ -119,7 +119,7 @@ export async function getDistributionGivenDomain({
   domain,
 } = {}) {
   const distributions = await listDistributions()
-  return distributions.filter(a => a.Aliases.Items.includes(domain))
+  return distributions.filter(a => a.Aliases.Items.includes(domain))[0]
 }
 
 async function listDistributions() {
