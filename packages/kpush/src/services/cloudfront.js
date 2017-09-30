@@ -2,6 +2,55 @@ import AWS from 'aws-sdk'
 
 import configuration from 'services/configuration'
 
+/**
+ * @param {string} domain
+ * @param {string} alias - cname associated with this distribution.
+ * @param {string} arn - CertificateArn
+ * @returns {object}
+ * {
+ *   distribution: {
+ *     Id: string,
+ *     ARN: string,
+ *     Status: string,
+ *     DomainName: string,
+ *     Aliases: {
+ *       Items: [string]
+ *     }
+ *   },
+ *   created: boolean,
+ * }
+ */
+export async function lazilyCreateDistribution({
+  domain,
+  alias,
+  arn,
+}) {
+  const distribution = await cloudfront.getDistributionGivenDomain({domain})
+  if (distribution) {
+    return { distribution, created: false }
+  }
+
+  const result = await createDistribution({
+    domain,
+    alias,
+    arn,
+  })
+  return {distribution: result, created: true}
+}
+
+/**
+ * @returns {object}
+ * {
+ *   Id: string,
+ *   ARN: string,
+ *   Status: string,
+ *   DomainName: string,
+ *   Aliases: {
+ *     Items: [string]
+ *   }
+ * }
+ * Look for Status === 'Deployed'
+ */
 export async function createDistribution({
   domain,
   alias,
@@ -112,14 +161,46 @@ export async function createDistribution({
       "IsIPV6Enabled": true,
     },
   }
-  return await getServiceObject().createDistribution(param).promise()
+  const { Distribution } = await getServiceObject().createDistribution(param).promise()
+  return Distribution
 }
 
-export async function getDistributionGivenDomain({
+/**
+ * @returns {object}
+ * {
+ *   Id: string,
+ *   ARN: string,
+ *   Status: string,
+ *   DomainName: string,
+ *   Aliases: {
+ *     Items: [string]
+ *   }
+ * }
+ * Look for Status === 'Deployed'
+ */
+async function getDistributionGivenDomain({
   domain,
 } = {}) {
   const distributions = await listDistributions()
   return distributions.filter(a => a.Aliases.Items.includes(domain))[0]
+}
+
+export async function createInvalidation({
+  DistributionId,
+}) {
+  const params = {
+    DistributionId,
+    InvalidationBatch: {
+      CallerReference: `${DistributionId}:${Date.now()}`,
+      Paths          : {
+        Quantity: 1,
+        Items   : [
+          '/*',
+        ],
+      },
+    },
+  }
+  return await getServiceObject().createInvalidation(params).promise()
 }
 
 async function listDistributions() {

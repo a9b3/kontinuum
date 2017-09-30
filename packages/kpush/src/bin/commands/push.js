@@ -6,33 +6,10 @@ import chalk           from 'chalk'
 import * as acm        from 'services/acm'
 import * as s3         from 'services/s3'
 import * as cloudfront from 'services/cloudfront'
+import * as route53    from 'services/route53'
 
 /**
  * Push will deploy a given directory to the given domain.
- *
- * 1. Determine if domain is a root domain.
- * 2. Check if certs exist for root domain and wildcard root domain.
- *    no
- *      - create rootCert for domain
- *          if root domain
- *            - create rootCert for root domain
- *      - exit application
- *    yes
- *      - continue
- * 3. Check if s3 bucket exists.
- *    no
- *      - create s3 bucket for domain
- *    yes
- *      - continue
- *    - upload source to s3 bucket
- * 4. Check if cloudfront distribution exists.
- *    no
- *      - create distribution for domain
- *          if root domain
- *            - create distribution for root domain
- *    yes
- *      - continue
- * 5. Check if route53 record exists for domain
  *
  * @param {!string} domain - Must be in the format of foo.example.com,
  * meaning no bar.foo.example.com or bar.example.com.au
@@ -44,15 +21,13 @@ export default async function push({
   log = console.log,
 } = {}) {
   validateArguments({domain, source})
-
   const rootDomain = getRootDomain(domain)
-  const rootCert = await acm.getCertForRootDomain({rootDomain})
-  if (!rootCert) {
-    await acm.lazilyCreateRootCert({rootDomain})
+
+  const acmresults = await acm.lazilyCreateRootCert({rootDomain})
+  if (acmresults.created) {
     log(chalk.yellow(`${rootDomain} requested a certificate, check your email to confirm.`))
     return false
-  }
-  if (rootCert.Status !== 'ISSUED') {
+  } else if (acmresults.cert.Status !== 'ISSUED') {
     log(chalk.red(`${d}'s certificate status isn't issued you might want to delete and
       try again and make sure to validate the email sent to the email associated with your amazon aws account.`))
     return false
@@ -61,17 +36,17 @@ export default async function push({
   await s3.lazilyCreateSPABucket({domain, log})
   await s3.sync({domain, source: path.resolve(source), log})
 
-  const distribution = await cloudfront.getDistributionGivenDomain({domain})
-  if (!distribution) {
-    log(`Creating cloudfront distribution for ${domain}`)
-    await cloudfront.createDistribution({
-      domain,
-      arn  : rootCert.CertificateArn,
-      alias: domain,
-    })
+  const cfresults = await cloudfront.lazilyCreateDistribution({ domain, arn: acmresults.cert.CertificateArn, alias: domain })
+  if (!cfresults.created) {
+    log(`Creating cloudfront invalidation for ${domain}`)
+    await cloudfront.createInvalidation({ DistributionId: cfresults.distribution.Id })
   } else {
-
+    log(`Creating cloudfront distribution for ${domain}`)
   }
+
+  // TODO check if this works
+  await route53.lazilyCreateRootHostedZone({rootDomain, log})
+  await route53.upsertARecordToCloudfront({rootDomain, domain, cloudFrontDNSName: distribution.DomainName})
 }
 
 function getRootDomain(domain) {

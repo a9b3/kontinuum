@@ -4,22 +4,38 @@ import configuration from 'services/configuration'
 
 /**
  * lazilyCreateCert will request a certificate if one does not already exist.
+ *
+ * @returns {object}
+ * { cert: { CertificateArn: string, DomainName: string }, created: boolean }
  */
 export async function lazilyCreateRootCert({
   rootDomain,
 } = {}) {
   const cert = await getCertForRootDomain({rootDomain})
   if (cert) {
-    return cert
+    return { cert, created: false }
   }
 
-  return await createCertForRootDomain({rootDomain})
+  const result = await createCertForRootDomain({rootDomain})
+  return { cert: result, created: true }
+}
+
+export async function deleteCert({
+  arn,
+}) {
+  const params = {
+    CertificateArn: arn,
+  }
+  return await getServiceObject().deleteCertificate(params).promise()
 }
 
 /**
  * createCertForRootDomain will request a certificate for the given domain.
+ *
+ * @returns {object}
+ * { CertificateArn: string, DomainName: string }
  */
-export async function createCertForRootDomain({
+async function createCertForRootDomain({
   rootDomain,
 } = {}) {
   const serviceObject = getServiceObject()
@@ -30,7 +46,8 @@ export async function createCertForRootDomain({
       rootDomain,
     ],
   }
-  return await serviceObject.requestCertificate(params).promise()
+  const { CertificateArn } = await serviceObject.requestCertificate(params).promise()
+  return await describeCertificate({ arn: CertificateArn })
 }
 
 /**
@@ -39,7 +56,7 @@ export async function createCertForRootDomain({
  * @returns {object}
  * { CertificateArn: string, DomainName: string }
  */
-export async function getCertForRootDomain({
+async function getCertForRootDomain({
   rootDomain = '',
 } = {}) {
   const certs = await getAllCerts()
@@ -47,7 +64,11 @@ export async function getCertForRootDomain({
   return certsDetail.filter(detail => detail.SubjectAlternativeNames.includes(rootDomain))[0]
 }
 
-export async function describeCertificate({
+/**
+ * @returns {object}
+ * { CertificateArn: string, DomainName: string }
+ */
+async function describeCertificate({
   arn,
 }) {
   const params = {
@@ -59,20 +80,15 @@ export async function describeCertificate({
   return Certificate
 }
 
-export async function getAllCerts() {
+/**
+ * @returns {array<object>}
+ * [{ CertificateArn: string, DomainName: string }]
+ */
+async function getAllCerts() {
   const {
     CertificateSummaryList,
   } = await getServiceObject().listCertificates().promise()
   return CertificateSummaryList
-}
-
-export async function deleteCert({
-  arn,
-}) {
-  const params = {
-    CertificateArn: arn,
-  }
-  return await getServiceObject().deleteCertificate(params).promise()
 }
 
 
