@@ -40,7 +40,7 @@ export async function lazilyCreateSPABucket({
   await putBucketSPAWebsite({domain})
 }
 
-export async function makeBucket({
+async function makeBucket({
   domain,
 } = {}) {
   const params = {
@@ -49,7 +49,7 @@ export async function makeBucket({
   return await getServiceObject().createBucket(params).promise()
 }
 
-export async function putPolicy({
+async function putPolicy({
   domain,
 }) {
   const policy = {
@@ -71,7 +71,7 @@ export async function putPolicy({
   return await getServiceObject().putBucketPolicy(params).promise()
 }
 
-export async function putBucketSPAWebsite({
+async function putBucketSPAWebsite({
   domain,
 }) {
   const params = {
@@ -88,7 +88,7 @@ export async function putBucketSPAWebsite({
   return await getServiceObject().putBucketWebsite(params).promise()
 }
 
-export async function domainExists({
+async function domainExists({
   domain,
 } = {}) {
   const { Buckets } = await getServiceObject().listBuckets().promise()
