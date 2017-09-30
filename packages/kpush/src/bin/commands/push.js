@@ -21,13 +21,13 @@ export default async function push({
   log = console.log,
 } = {}) {
   validateArguments({domain, source})
-  const rootDomain = getRootDomain(domain)
+  const rootDomain = extractRootDomain(domain)
 
-  const acmresults = await acm.lazilyCreateRootCert({rootDomain})
-  if (acmresults.created) {
+  const acmResults = await acm.lazilyCreateRootCert({rootDomain})
+  if (acmResults.created) {
     log(chalk.yellow(`${rootDomain} requested a certificate, check your email to confirm.`))
     return false
-  } else if (acmresults.cert.Status !== 'ISSUED') {
+  } else if (acmResults.cert.Status !== 'ISSUED') {
     log(chalk.red(`${d}'s certificate status isn't issued you might want to delete and
       try again and make sure to validate the email sent to the email associated with your amazon aws account.`))
     return false
@@ -36,10 +36,10 @@ export default async function push({
   await s3.lazilyCreateSPABucket({domain, log})
   await s3.sync({domain, source: path.resolve(source), log})
 
-  const cfresults = await cloudfront.lazilyCreateDistribution({ domain, arn: acmresults.cert.CertificateArn, alias: domain })
-  if (!cfresults.created) {
+  const cfResults = await cloudfront.lazilyCreateDistribution({ domain, arn: acmResults.cert.CertificateArn, alias: domain })
+  if (!cfResults.created) {
     log(`Creating cloudfront invalidation for ${domain}`)
-    await cloudfront.createInvalidation({ DistributionId: cfresults.distribution.Id })
+    await cloudfront.createInvalidation({ DistributionId: cfResults.distribution.Id })
   } else {
     log(`Creating cloudfront distribution for ${domain}`)
   }
@@ -49,7 +49,7 @@ export default async function push({
   await route53.upsertARecordToCloudfront({rootDomain, domain, cloudFrontDNSName: distribution.DomainName})
 }
 
-function getRootDomain(domain) {
+function extractRootDomain(domain) {
   const tokens = domain.split('.')
   return tokens.length === 3 ? tokens.slice(1).join('.') : domain
 }
