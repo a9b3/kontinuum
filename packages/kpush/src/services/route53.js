@@ -33,10 +33,10 @@ export async function upsertARecordToCloudfront({
 }
 
 export async function lazilyCreateRootHostedZone({rootDomain, log}) {
-  const hostedZone = await getHostedZoneGivenRootDomain({rootDomain})
+  let hostedZone = await getHostedZoneGivenRootDomain({rootDomain})
   if (!hostedZone) {
     log(chalk.green(`creating route53 hosted zone for ${rootDomain}`))
-    await createHostedZoneForRootDomain({rootDomain})
+    hostedZone = await createHostedZoneForRootDomain({rootDomain})
   }
 
   return hostedZone
