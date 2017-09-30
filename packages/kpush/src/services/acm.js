@@ -3,7 +3,7 @@ import AWS           from 'aws-sdk'
 import configuration from 'services/configuration'
 
 /**
- * lazilyCreateCert will request a certificate if one does not already exist.
+ * lazilyCreateRootCert will request a certificate if one does not already exist.
  *
  * @returns {object}
  * { cert: { CertificateArn: string, DomainName: string }, created: boolean }
