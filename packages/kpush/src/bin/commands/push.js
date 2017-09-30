@@ -36,7 +36,11 @@ export default async function push({
   await s3.lazilyCreateSPABucket({domain, log})
   await s3.sync({domain, source: path.resolve(source), log})
 
-  const cfResults = await cloudfront.lazilyCreateDistribution({ domain, arn: acmResults.cert.CertificateArn, alias: domain })
+  const cfResults = await cloudfront.lazilyCreateDistribution({
+    domain,
+    arn    : acmResults.cert.CertificateArn,
+    aliases: [domain, isRootDomain(domain) && `www.${domain}`].filter(Boolean),
+  })
   if (!cfResults.created) {
     log(`Creating cloudfront invalidation for ${domain}`)
     await cloudfront.createInvalidation({ DistributionId: cfResults.distribution.Id })
@@ -44,9 +48,11 @@ export default async function push({
     log(`Creating cloudfront distribution for ${domain}`)
   }
 
-  // TODO check if this works
   await route53.lazilyCreateRootHostedZone({rootDomain, log})
   await route53.upsertARecordToCloudfront({rootDomain, domain, cloudFrontDNSName: distribution.DomainName})
+  if (isRootDomain(domain)) {
+    await route53.upsertARecordToCloudfront({rootDomain, domain: `www.${domain}`, cloudFrontDNSName: distribution.DomainName})
+  }
 }
 
 function extractRootDomain(domain) {

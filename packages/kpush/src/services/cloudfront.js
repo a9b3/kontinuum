@@ -22,7 +22,7 @@ import configuration from 'services/configuration'
  */
 export async function lazilyCreateDistribution({
   domain,
-  alias,
+  aliases,
   arn,
 }) {
   const distribution = await cloudfront.getDistributionGivenDomain({domain})
@@ -32,7 +32,7 @@ export async function lazilyCreateDistribution({
 
   const result = await createDistribution({
     domain,
-    alias,
+    aliases,
     arn,
   })
   return {distribution: result, created: true}
@@ -53,7 +53,7 @@ export async function lazilyCreateDistribution({
  */
 export async function createDistribution({
   domain,
-  alias,
+  aliases = [],
   arn,
 }) {
   const s3BucketOriginId = `S3-${domain}`
@@ -62,10 +62,8 @@ export async function createDistribution({
     "DistributionConfig": {
       "CallerReference": `${domain}:${alias}:${Date.now()}`,
       "Aliases"        : {
-        "Quantity": 1,
-        "Items"   : [
-          alias,
-        ],
+        "Quantity": aliases.length,
+        "Items"   : aliases,
       },
       "DefaultRootObject": "/index.html",
       "Origins"          : {
