@@ -13,9 +13,9 @@ import * as cloudfront from 'services/cloudfront'
  * 1. Determine if domain is a root domain.
  * 2. Check if certs exist for root domain and wildcard root domain.
  *    no
- *      - create cert for domain
+ *      - create rootCert for domain
  *          if root domain
- *            - create cert for root domain
+ *            - create rootCert for root domain
  *      - exit application
  *    yes
  *      - continue
@@ -45,55 +45,33 @@ export default async function push({
 } = {}) {
   validateArguments({domain, source})
 
-  // const rootDomain = getRootDomain(domain)
-  // const certDomains = [
-  //   rootDomain,
-  //   `*.${rootDomain}`,
-  // ]
-  // const certs = await Promise.all(certDomains.map(async d => {
-  //   const cert = await acm.getCertForDomain({domain: d})
-  //   const certDetails = await acm.describeCertificate({ arn: cert.CertificateArn })
-  //   if (!cert) {
-  //     await acm.lazilyCreateCert({domain: d})
-  //     log(chalk.yellow(`${d} requested a certificate check your email to confirm.`))
-  //   }
-  //   if (cert && certDetails.Status !== 'ISSUED') {
-  //     log(chalk.red(`${d}'s certificate status isn't issued you might want to delete and
-  //     try again and make sure to validate the email sent to the email associated with your amazon aws account.`))
-  //     return false
-  //   }
-  //   log(`${d} certificate status is ${certDetails.Status}`)
-  //   return cert
-  // }))
-  // if (certs.some(cert => !cert)) {
-  //   return
-  // }
-  //
-  // await s3.lazilyCreateSPABucket({domain, log})
-  // await s3.sync({domain, source: path.resolve(source), log})
+  const rootDomain = getRootDomain(domain)
+  const rootCert = await acm.getCertForRootDomain({rootDomain})
+  if (!rootCert) {
+    await acm.lazilyCreateRootCert({rootDomain})
+    log(chalk.yellow(`${rootDomain} requested a certificate, check your email to confirm.`))
+    return false
+  }
+  if (rootCert.Status !== 'ISSUED') {
+    log(chalk.red(`${d}'s certificate status isn't issued you might want to delete and
+      try again and make sure to validate the email sent to the email associated with your amazon aws account.`))
+    return false
+  }
 
-  const d = await cloudfront.getDistributionGivenDomain({domain})
-  if (d.length === 0) {
+  await s3.lazilyCreateSPABucket({domain, log})
+  await s3.sync({domain, source: path.resolve(source), log})
+
+  const distribution = await cloudfront.getDistributionGivenDomain({domain})
+  if (!distribution) {
     log(`Creating cloudfront distribution for ${domain}`)
     await cloudfront.createDistribution({
       domain,
-      arn  : await acm.getCertForDomain({domain}),
+      arn  : rootCert.CertificateArn,
       alias: domain,
     })
+  } else {
+
   }
-  if (isRootDomain(domain)) {
-    const wwwDistribution = await cloudfront.getDistributionGivenDomain({domain: `www.${domain}`})
-    if (wwwDistribution.length === 0) {
-      log(`Creating cloudfront distribution for www.${domain} as well`)
-      await cloudfront.createDistribution({
-        domain: `www.${domain}`,
-        arn   : await acm.getCertForDomain({domain: `*.${domain}`}),
-        alias : `www.${domain}`,
-      })
-    }
-  }
-  acm.getCertForDomain({domain})
-  console.log(d)
 }
 
 function getRootDomain(domain) {

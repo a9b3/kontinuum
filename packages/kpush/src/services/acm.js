@@ -5,52 +5,46 @@ import configuration from 'services/configuration'
 /**
  * lazilyCreateCert will request a certificate if one does not already exist.
  */
-export async function lazilyCreateCert({
-  domain,
+export async function lazilyCreateRootCert({
+  rootDomain,
 } = {}) {
-  const cert = await getCertForDomain({domain})
+  const cert = await getCertForRootDomain({rootDomain})
   if (cert) {
     return cert
   }
 
-  return await createCertForDomain({domain})
+  return await createCertForRootDomain({rootDomain})
 }
 
 /**
- * createCertForDomain will request a certificate for the given domain.
+ * createCertForRootDomain will request a certificate for the given domain.
  */
-export async function createCertForDomain({
-  domain,
+export async function createCertForRootDomain({
+  rootDomain,
 } = {}) {
   const serviceObject = getServiceObject()
 
   const params = {
-    DomainName: domain,
-    // TODO add naked url here, also search based on this so you dont need two
-    // cloudfront distributions
+    DomainName             : `*.${rootDomain}`,
     SubjectAlternativeNames: [
-      '',
+      rootDomain,
     ],
-    // DomainValidationOptions: [
-    //   {
-    //     DomainName      : 'STRING_VALUE',
-    //     ValidationDomain: 'STRING_VALUE',
-    //   },
-    // ],
   }
   return await serviceObject.requestCertificate(params).promise()
 }
 
 /**
- * getCertForDomain will get the certificate arn for the given domain.
+ * getCertForRootDomain will get the certificate arn for the given domain.
  *
  * @returns {object}
  * { CertificateArn: string, DomainName: string }
  */
-export async function getCertForDomain({
-  domain = '',
+export async function getCertForRootDomain({
+  rootDomain = '',
 } = {}) {
-  return (await getAllCerts()).filter(c => c.DomainName === domain)[0]
+  const certs = await getAllCerts()
+  const certsDetail = await Promise.all(certs.map(cert => describeCertificate({ arn: cert.CertificateArn })))
+  return certsDetail.filter(detail => detail.SubjectAlternativeNames.includes(rootDomain))[0]
 }
 
 export async function describeCertificate({
