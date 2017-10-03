@@ -49,9 +49,9 @@ export default async function push({
   }
 
   await route53.lazilyCreateRootHostedZone({rootDomain, log})
-  await route53.upsertARecordToCloudfront({rootDomain, domain, cloudFrontDNSName: distribution.DomainName})
+  await route53.upsertARecordToCloudfront({rootDomain, domain, cloudFrontDNSName: cfResults.distribution.DomainName})
   if (isRootDomain(domain)) {
-    await route53.upsertARecordToCloudfront({rootDomain, domain: `www.${domain}`, cloudFrontDNSName: distribution.DomainName})
+    await route53.upsertARecordToCloudfront({rootDomain, domain: `www.${domain}`, cloudFrontDNSName: cfResults.distribution.DomainName})
   }
 }
 

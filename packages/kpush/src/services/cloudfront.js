@@ -4,7 +4,7 @@ import configuration from 'services/configuration'
 
 /**
  * @param {string} domain
- * @param {string} alias - cname associated with this distribution.
+ * @param {string} aliases - cname associated with this distribution.
  * @param {string} arn - CertificateArn
  * @returns {object}
  * {
@@ -25,7 +25,7 @@ export async function lazilyCreateDistribution({
   aliases,
   arn,
 }) {
-  const distribution = await cloudfront.getDistributionGivenDomain({domain})
+  const distribution = await getDistributionGivenDomain({domain})
   if (distribution) {
     return { distribution, created: false }
   }
@@ -60,7 +60,7 @@ export async function createDistribution({
   const s3BucketDomainName = `${domain}.s3.amazonaws.com`
   const param = {
     "DistributionConfig": {
-      "CallerReference": `${domain}:${alias}:${Date.now()}`,
+      "CallerReference": `${domain}:${aliases.join(',')}:${Date.now()}`,
       "Aliases"        : {
         "Quantity": aliases.length,
         "Items"   : aliases,
@@ -89,12 +89,6 @@ export async function createDistribution({
           "Headers": {
             "Quantity": 0,
           },
-          "QueryStringCacheKeys": {
-            "Quantity": 1,
-            "Items"   : [
-              "version",
-            ],
-          },
         },
         "TrustedSigners": {
           "Enabled" : false,
@@ -116,13 +110,10 @@ export async function createDistribution({
             ],
           },
         },
-        "SmoothStreaming"           : false,
-        "DefaultTTL"                : 86400,
-        "MaxTTL"                    : 31536000,
-        "Compress"                  : true,
-        "LambdaFunctionAssociations": {
-          "Quantity": 0,
-        },
+        "SmoothStreaming": false,
+        "DefaultTTL"     : 86400,
+        "MaxTTL"         : 31536000,
+        "Compress"       : true,
       },
       "CacheBehaviors": {
         "Quantity": 0,
@@ -154,9 +145,7 @@ export async function createDistribution({
           "Quantity"       : 0,
         },
       },
-      "WebACLId"     : "",
-      "HttpVersion"  : "http2",
-      "IsIPV6Enabled": true,
+      "WebACLId": "",
     },
   }
   const { Distribution } = await getServiceObject().createDistribution(param).promise()
