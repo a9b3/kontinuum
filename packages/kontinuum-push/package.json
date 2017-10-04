@@ -16,7 +16,7 @@
   "scripts": {
     "start": "NODE_PATH=./src nodemon ./index.js",
     "lint": "./node_modules/eslint/bin/eslint.js .",
-    "build": "./node_modules/jbs-node/bin.js build --input src --output build",
+    "build": "rm -rf ./build && ./node_modules/jbs-node/bin.js build --input src --output build",
     "prepublish": "npm run build",
     "preversion": "npm run lint",
     "version": "npm publish",
