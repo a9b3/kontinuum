@@ -28,17 +28,7 @@ Now add a npm script to call the push script.
 ```json
 {
 	"scripts": {
-		"deploy": "./node_modules/kontinuum-push/push.sh --domain foo.example.com --root example.com --source ./build"
-	}
-}
-```
-
-If your static site is for the root of the domain include the flag `---include-www`.
-
-```json
-{
-	"scripts": {
-		"deploy": "./node_modules/kontinuum-push/push.sh --domain foo.example.com --root example.com --source ./build --include-www"
+		"deploy": "./node_modules/kontinuum-push/build/bin/index.js push --domain foo.example.com --source ./build"
 	}
 }
 ```
